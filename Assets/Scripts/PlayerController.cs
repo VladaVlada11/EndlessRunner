@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody rb;
+    private Animator anim;
     
     public float minXPosition = -2;
     public float maxXPosition = 2;
@@ -17,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     private float destinationX;
     private bool hasReachedDestination = true;
+    private bool isLeft = false;
 
     void Start()
     {
@@ -24,6 +26,11 @@ public class PlayerController : MonoBehaviour
         if(rb == null) 
         {
             Debug.LogError($"No rigidbody found on object: {gameObject.name}");
+        }
+        anim= GetComponent<Animator>();
+        if (anim == null)
+        {
+            Debug.LogError($"No animator found on object: {gameObject.name}");
         }
     }
 
@@ -37,13 +44,9 @@ public class PlayerController : MonoBehaviour
             if (gameObject.transform.position.x > minXPosition) 
             {
                 //move player rigidbody on x axis by -stepDistance
-                /*gameObject.transform.position = new Vector3(
-                    gameObject.transform.position.x - stepDistance,
-                    gameObject.transform.position.y,
-                    gameObject.transform.position.z
-                    );*/
-                destinationX = gameObject.transform.position.x-stepDistance;
+                destinationX = gameObject.transform.position.x - stepDistance;
                 hasReachedDestination = false;
+                isLeft = true;
             }
         }
 
@@ -54,58 +57,68 @@ public class PlayerController : MonoBehaviour
             if (gameObject.transform.position.x < maxXPosition)
             {
                 // move player rigidbody on x axis by stepDistance
-                /*gameObject.transform.position = new Vector3(
-                    gameObject.transform.position.x + stepDistance,
-                    gameObject.transform.position.y,
-                    gameObject.transform.position.z
-                    );*/
                 destinationX = gameObject.transform.position.x + stepDistance;
                 hasReachedDestination = false;
+                isLeft = false;
             }
         }
-
-        if (!hasReachedDestination) 
+        
+        if (!hasReachedDestination)
         {
-            if (destinationX < gameObject.transform.position.x)
+            if (isLeft)
             {
-                gameObject.transform.position = new Vector3(
-                    gameObject.transform.position.x - laneTransitionSpeed * Time.deltaTime,
-                    gameObject.transform.position.y,
-                    gameObject.transform.position.z
-                    );
+                rb.velocity = new Vector3(-laneTransitionSpeed * Time.deltaTime, 0, 0);
 
                 if (gameObject.transform.position.x <= destinationX)
                 {
                     hasReachedDestination = true;
-                    gameObject.transform.position = new Vector3(
+                    rb.velocity = new Vector3(0, 0, 0);
+                    rb.position = new Vector3(
                         destinationX,
-                        gameObject.transform.position.y,
-                        gameObject.transform.position.z
+                        rb.position.y,
+                        rb.position.z
                         );
                 }
 
             }
-            else 
+            else
             {
-                gameObject.transform.position = new Vector3(
-                    gameObject.transform.position.x + laneTransitionSpeed * Time.deltaTime,
-                    gameObject.transform.position.y,
-                    gameObject.transform.position.z
-                    );
+                rb.velocity = new Vector3(laneTransitionSpeed * Time.deltaTime, 0, 0);
 
                 if (gameObject.transform.position.x >= destinationX)
                 {
                     hasReachedDestination = true;
-                    gameObject.transform.position = new Vector3(
+                    rb.velocity = new Vector3(0, 0, 0);
+                    rb.position = new Vector3(
                         destinationX,
-                        gameObject.transform.position.y,
-                        gameObject.transform.position.z
+                        rb.position.y,
+                        rb.position.z
                         );
+                    
                 }
             }
 
-            
+
         }
-        //smooth transition
+        else 
+        {
+            //rb.velocity = new Vector3(0, 0, 0);
+        }
+
+    }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle")) 
+        {
+            Debug.Log("Death");
+            Die();
+        }
+    }
+
+    public void Die() 
+    {
+        GameObject.FindWithTag("GameController").GetComponent<GameManager>().StopGame();
+        anim.SetTrigger("Die");
     }
 }

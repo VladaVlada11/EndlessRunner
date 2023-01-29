@@ -7,6 +7,7 @@ public class SimpleMovingRoad : MonoBehaviour
 {
     public List<GameObject> wholeRoadList;
     public float movementSpeed = 2;
+    public bool isMoving = true;
     void Start()
     {
         if(wholeRoadList != null && wholeRoadList.Count > 0)
@@ -27,7 +28,10 @@ public class SimpleMovingRoad : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        gameObject.transform.position = new Vector3(0, 0, gameObject.transform.position.z - movementSpeed*Time.deltaTime);
+        if (isMoving)
+        {
+            gameObject.transform.position = new Vector3(0, 0, gameObject.transform.position.z - movementSpeed * Time.deltaTime);
+        }
 
         
     }
