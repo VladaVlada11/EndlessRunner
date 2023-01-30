@@ -4,60 +4,55 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Rigidbody rb;
-    private Animator anim;
-    
-    public float minXPosition = -2;
-    public float maxXPosition = 2;
-    public float stepDistance = 2;
+    private Rigidbody rb; // allows gameObject to react to real-time physics
+    private Animator anim; // ontrols the logic of an animated gameObject
 
-    public float laneTransitionSpeed = 10;
-    //minimumXPosition = -2
-    //maximumXPosition = 2
-    //stepDistance = 2
+    // our character's positions on X (initial middle position = 0)
+    public float minXPosition = -2; // the leftmost position
+    public float maxXPosition = 2; // the rightmost position
+    public float positionsDistance = 2; // distance between character's positions
 
-    private float destinationX;
+    public float lineTransitionSpeed = 10; // speed with which character moves between lines
+
+    private float destinationX; // desired destination line, in which we want to move our character 
     private bool hasReachedDestination = true;
     private bool isLeft = false;
 
     void Start()
-    {
-        rb= GetComponent<Rigidbody>();
+    { // for comfort usage: in case we forget to connect rigidBody or animator to our character
+
+        rb = GetComponent<Rigidbody>(); // defining of rigidBody
+
         if(rb == null) 
         {
             Debug.LogError($"No rigidbody found on object: {gameObject.name}");
         }
-        anim= GetComponent<Animator>();
+        anim = GetComponent<Animator>();
         if (anim == null)
         {
             Debug.LogError($"No animator found on object: {gameObject.name}");
         }
     }
-
     
     void Update()
     {
-        //if 'A' or left arrow pressed
-        if (hasReachedDestination && Input.GetKeyDown(KeyCode.A)) 
+        if (hasReachedDestination && Input.GetKeyDown(KeyCode.A)) // when 'A' or left arrow are pressed
         {
-            //if player x position > minimumXPosition
-            if (gameObject.transform.position.x > minXPosition) 
-            {
-                //move player rigidbody on x axis by -stepDistance
-                destinationX = gameObject.transform.position.x - stepDistance;
+            if (gameObject.transform.position.x > minXPosition) // if character's X position > minimum/left position, then:
+            { 
+                // character's rigidb is moved on X axis by -positionDistance
+                destinationX = gameObject.transform.position.x - positionsDistance;
                 hasReachedDestination = false;
                 isLeft = true;
             }
         }
 
-        //if 'D' or right arrow pressed
-        if (hasReachedDestination && Input.GetKeyDown(KeyCode.D))
+        if (hasReachedDestination && Input.GetKeyDown(KeyCode.D)) // when 'D' or right arrow are pressed
         {
-            //  if player x position < maximumXPosition
-            if (gameObject.transform.position.x < maxXPosition)
+            if (gameObject.transform.position.x < maxXPosition) // if character's X position < maximum/right position, then:
             {
-                // move player rigidbody on x axis by stepDistance
-                destinationX = gameObject.transform.position.x + stepDistance;
+                // character's rigidbody is moved on X axis by positionDistance
+                destinationX = gameObject.transform.position.x + positionsDistance;
                 hasReachedDestination = false;
                 isLeft = false;
             }
@@ -66,45 +61,33 @@ public class PlayerController : MonoBehaviour
         if (!hasReachedDestination)
         {
             if (isLeft)
-            {
-                rb.velocity = new Vector3(-laneTransitionSpeed * Time.deltaTime, 0, 0);
+            { 
+                // velocity represents the rate of change of Rigidbody position
+                rb.velocity = new Vector3(-lineTransitionSpeed * Time.deltaTime, 0, 0);
 
                 if (gameObject.transform.position.x <= destinationX)
                 {
                     hasReachedDestination = true;
                     rb.velocity = new Vector3(0, 0, 0);
-                    rb.position = new Vector3(
-                        destinationX,
-                        rb.position.y,
-                        rb.position.z
-                        );
+                    rb.position = new Vector3(destinationX, rb.position.y, rb.position.z); //character's position on X axis is changed
                 }
-
             }
             else
             {
-                rb.velocity = new Vector3(laneTransitionSpeed * Time.deltaTime, 0, 0);
+                rb.velocity = new Vector3(lineTransitionSpeed * Time.deltaTime, 0, 0);
 
                 if (gameObject.transform.position.x >= destinationX)
                 {
                     hasReachedDestination = true;
                     rb.velocity = new Vector3(0, 0, 0);
-                    rb.position = new Vector3(
-                        destinationX,
-                        rb.position.y,
-                        rb.position.z
-                        );
-                    
+                    rb.position = new Vector3(destinationX, rb.position.y, rb.position.z);
                 }
             }
-
-
         }
         else 
         {
             //rb.velocity = new Vector3(0, 0, 0);
         }
-
     }
 
     public void OnCollisionEnter(Collision collision)
